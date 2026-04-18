@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#6366f1">
+  <title>Food Expense Tracker</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Auth Page -->
+    <div id="auth-page" class="auth-page" style="display:none;">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="emoji">🍜</span>
+          <h2 id="auth-title"></h2>
+          <p id="auth-subtitle"></p>
+        </div>
+        <form id="auth-form">
+          <div class="form-group" id="display-name-group" style="display:none;">
+            <label data-i18n="display_name"></label>
+            <input type="text" id="auth-display-name" maxlength="20">
+          </div>
+          <div class="form-group">
+            <label data-i18n="username"></label>
+            <input type="text" id="auth-username" autocomplete="username" maxlength="30">
+          </div>
+          <div class="form-group">
+            <label data-i18n="password"></label>
+            <input type="password" id="auth-password" autocomplete="current-password">
+          </div>
+          <div class="auth-error" id="auth-error"></div>
+          <button type="submit" class="btn btn-primary" id="auth-submit-btn"></button>
+        </form>
+        <div class="auth-switch" id="auth-switch"></div>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" style="display:none;">
+      <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+          <div class="header-left">
+            <h1>🍜 <span data-i18n="app_title"></span></h1>
+          </div>
+          <div class="header-actions">
+            <div class="sse-status" id="sse-status">
+              <span class="sse-dot" id="sse-dot"></span>
+              <span id="sse-text"></span>
+            </div>
+            <button class="icon-btn" id="lang-btn" title="中/EN">文</button>
+            <button class="icon-btn" id="notif-btn" title="Notifications">
+              🔔
+              <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+            </button>
+            <button class="icon-btn" id="logout-btn" title="Logout">⏻</button>
+          </div>
+        </div>
+
+        <!-- Notification Dropdown -->
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-header">
+            <h4 data-i18n="notifications"></h4>
+            <button class="btn btn-xs btn-outline" id="mark-read-btn" data-i18n="mark_all_read"></button>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+
+        <!-- Sections -->
+        <div id="section-claims" class="section active">
+          <div class="claims-header">
+            <h2 data-i18n="nav_claims"></h2>
+            <button class="btn btn-xs btn-outline" id="export-btn" data-i18n="export_csv"></button>
+          </div>
+          <div class="search-bar">
+            <input type="text" id="search-input" data-i18n-placeholder="search_placeholder">
+          </div>
+          <div class="filter-tabs" id="filter-tabs"></div>
+          <div id="claims-list"></div>
+        </div>
+
+        <div id="section-stats" class="section">
+          <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:12px;" data-i18n="nav_stats"></h2>
+          <div class="stats-grid" id="stats-grid"></div>
+          <div class="card" id="chart-card" style="display:none;">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:8px;" data-i18n="monthly_chart"></h3>
+            <canvas id="monthly-chart" width="400" height="200"></canvas>
+          </div>
+          <div class="card" id="category-card" style="display:none;">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:8px;" data-i18n="category_breakdown"></h3>
+            <div id="category-list"></div>
+          </div>
+          <div class="card" id="balances-card">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:8px;" data-i18n="friend_balances"></h3>
+            <div id="balances-list"></div>
+          </div>
+        </div>
+
+        <div id="section-activity" class="section">
+          <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:12px;" data-i18n="activity_log"></h2>
+          <div id="activity-list"></div>
+        </div>
+
+        <div id="section-settlement" class="section">
+          <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;" data-i18n="settlement_title"></h2>
+          <p style="font-size:0.8rem;color:var(--gray-400);margin-bottom:14px;" data-i18n="settlement_desc"></p>
+          <div id="settlement-list"></div>
+        </div>
+
+        <div id="section-profile" class="section">
+          <div class="card profile-card" id="profile-view"></div>
+          <div class="card" style="margin-top:12px;">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:12px;" data-i18n="edit_profile"></h3>
+            <form id="profile-form">
+              <div class="form-group">
+                <label data-i18n="display_name"></label>
+                <input type="text" id="profile-display-name" maxlength="20">
+              </div>
+              <div class="form-group">
+                <label data-i18n="avatar_color"></label>
+                <div class="color-picker" id="color-picker"></div>
+              </div>
+              <div class="form-group">
+                <label data-i18n="current_password"></label>
+                <input type="password" id="profile-current-pw" placeholder="(leave empty to keep)">
+              </div>
+              <div class="form-group">
+                <label data-i18n="new_password"></label>
+                <input type="password" id="profile-new-pw">
+              </div>
+              <button type="submit" class="btn btn-primary" data-i18n="save_changes"></button>
+            </form>
+          </div>
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" id="fab-new">+</button>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav" id="bottom-nav"></div>
+      </div>
+    </div>
+
+    <!-- New Claim Modal -->
+    <div class="modal-overlay" id="claim-modal">
+      <div class="modal">
+        <h3 data-i18n="new_claim"></h3>
+        <form id="claim-form">
+          <div class="form-group">
+            <label data-i18n="select_target"></label>
+            <select id="claim-target"></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label data-i18n="amount"></label>
+              <input type="number" id="claim-amount" step="0.01" min="0.01" required>
+            </div>
+            <div class="form-group">
+              <label data-i18n="category"></label>
+              <select id="claim-category">
+                <option value="meal" data-i18n="cat_meal"></option>
+                <option value="drinks" data-i18n="cat_drinks"></option>
+                <option value="snack" data-i18n="cat_snack"></option>
+                <option value="dessert" data-i18n="cat_dessert"></option>
+                <option value="groceries" data-i18n="cat_groceries"></option>
+                <option value="other" data-i18n="cat_other"></option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label data-i18n="food_desc"></label>
+            <input type="text" id="claim-food" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label data-i18n="restaurant"></label>
+            <input type="text" id="claim-restaurant" maxlength="60">
+          </div>
+          <div class="form-group">
+            <label data-i18n="notes"></label>
+            <textarea id="claim-notes" maxlength="200"></textarea>
+          </div>
+          <div class="form-group">
+            <label data-i18n="receipt"></label>
+            <input type="file" id="claim-receipt" accept="image/*">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('claim-modal')" data-i18n="cancel"></button>
+            <button type="submit" class="btn btn-primary" data-i18n="submit_claim"></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="payment-modal">
+      <div class="modal">
+        <h3 data-i18n="select_payment"></h3>
+        <div class="payment-options" id="payment-options">
+          <div class="payment-option" data-method="Touch 'n Go"><span class="pay-icon">📱</span>Touch 'n Go</div>
+          <div class="payment-option" data-method="GrabPay"><span class="pay-icon">🟢</span>GrabPay</div>
+          <div class="payment-option" data-method="Bank Transfer"><span class="pay-icon">🏦</span>Bank Transfer</div>
+          <div class="payment-option" data-method="Boost"><span class="pay-icon">🔴</span>Boost</div>
+          <div class="payment-option" data-method="ShopeePay"><span class="pay-icon">🟠</span>ShopeePay</div>
+          <div class="payment-option" data-method="Cash"><span class="pay-icon">💵</span>Cash</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="closeModal('payment-modal')" data-i18n="cancel"></button>
+          <button class="btn btn-success" id="confirm-pay-btn" disabled data-i18n="mark_paid"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="receipt-modal" id="receipt-modal">
+      <span class="receipt-modal-close" onclick="closeModal('receipt-modal')">&times;</span>
+      <img id="receipt-full-img" src="" alt="Receipt">
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script src="/js/i18n.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
